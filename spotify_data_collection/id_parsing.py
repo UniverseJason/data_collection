@@ -35,7 +35,7 @@ client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_I
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 # Get the value of a nested dictionary
-def safe_get(dictionary, keys, default=None):
+def safe_get(dictionary, keys, default=""):
     try:
         for key in keys:
             dictionary = dictionary[key]
@@ -122,11 +122,17 @@ def save_to_csv(song_features, filename, mode='w', header=True):
 
 # parsing the song ids
 import pandas as pd
+import tqdm
+import subprocess
 def main(input_file, output_file, chunksize=50):
     # Read the input CSV file in chunks
     reader = pd.read_csv(input_file, chunksize=chunksize)
 
+    # get the line number of the input file use wc -l
+    line_num = int(subprocess.check_output(['wc', '-l', input_file]).split()[0])
+
     # Process each chunk
+    progress_bar = tqdm.tqdm(total=line_num)
     for i, chunk in enumerate(reader):
         print(f"Processing chunk {i+1}")
 
@@ -140,6 +146,8 @@ def main(input_file, output_file, chunksize=50):
         mode = 'w' if i == 0 else 'a'
         header = i == 0
         save_to_csv(song_features, output_file, mode=mode, header=header)
+        progress_bar.update(len(song_features))
+    progress_bar.close()
 
 if __name__ == '__main__':
     input_file = 'song_ids.csv'
