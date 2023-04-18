@@ -17,6 +17,23 @@
 
 --
 -- Table structure for table `track`
+-- track_id
+-- album_id
+-- name
+-- track_href
+-- cover_image_url
+-- release_date
+-- preview_url
+-- popularity
+-- acousticness
+-- danceability
+-- energy
+-- liveness
+-- loudness
+-- speechiness
+-- tempo
+-- instrumentalness
+-- valence
 --
 
 DROP TABLE IF EXISTS `track`;
@@ -42,6 +59,7 @@ CREATE TABLE `track` (
   `valence` float DEFAULT NULL COMMENT 'A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).',
   PRIMARY KEY (`track_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='signal track from spotify';
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
