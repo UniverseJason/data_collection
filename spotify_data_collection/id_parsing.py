@@ -123,7 +123,7 @@ def save_to_csv(song_features, filename, mode='w', header=True):
 # parsing the song ids
 import pandas as pd
 import tqdm
-import subprocess
+import subprocess, os
 def main(input_file, output_file, chunksize=50):
     # Read the input CSV file in chunks
     reader = pd.read_csv(input_file, chunksize=chunksize)
@@ -139,13 +139,22 @@ def main(input_file, output_file, chunksize=50):
         # Extract the song IDs from the chunk
         song_ids = chunk['song_id'].tolist()
 
-        # Fetch song features
-        song_features = fetch_song_features(song_ids)
+        # Fetch song features with error checking, retry 10 times if error occurs
+        try:
+            song_features = fetch_song_features(song_ids)
+        except Exception as e:
+            time.sleep(10)
+            for i in range(10):
+                song_features = fetch_song_features(song_ids)
+                if song_features:
+                    break
+                else:
+                    time.sleep(10)
 
         # Write the fetched features to the output CSV file
-        mode = 'w' if i == 0 else 'a'
-        header = i == 0
-        save_to_csv(song_features, output_file, mode=mode, header=header)
+        file_is_empty = not os.path.exists(output_file) or os.path.getsize(output_file) == 0
+        mode = 'w' if file_is_empty else 'a'
+        save_to_csv(song_features, output_file, mode=mode, header=file_is_empty)
         progress_bar.update(len(song_features))
     progress_bar.close()
 
