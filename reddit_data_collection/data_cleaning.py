@@ -1,26 +1,64 @@
 import pandas as pd
 import csv
-from tqdm import tqdm
+import tqdm
 
-input_file = "new_reddit_data.csv"
-output_file = "filtered_reddit_data.csv"
-total_lines = 45000001
-chunksize = 1000
+input_file = "./data_archive/RC_2015-01.csv"
+output_file = "./data_archive/new_reddit_comment.csv"
+file_line = 53851543
 
-df = pd.read_csv(input_file, chunksize=chunksize)
-progress_bar = tqdm(total=total_lines)
+chunksize = 10000
+reader = pd.read_csv(input_file, chunksize=chunksize)
+new_file = open(output_file, 'w', newline='', encoding='utf-8')
 
-with open(output_file, 'w', newline='', encoding='utf-8') as filtered_file:
-    for i, chunk in enumerate(df):
-        # Remove rows with empty values in the first column
-        chunk = chunk.dropna(subset=[chunk.columns[0]])
-        
-        if i == 0:  # Write the header and the first chunk
-            chunk.to_csv(filtered_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
-        else:  # Append the subsequent chunks without the header
-            chunk.to_csv(filtered_file, index=False, header=False, quoting=csv.QUOTE_NONNUMERIC)
-        
-        progress_bar.update(chunksize)
+progress_bar = tqdm.tqdm(total=file_line)
+counter = 0
+for df in reader:
+    # drop controversiality, distinguished, downs, score columns
+    df = df.drop(columns=['controversiality', 'distinguished', 'downs', 'score'])
 
+    # drop rows if body is [deleted]
+    df = df[df.body != '[deleted]']
+
+    # drop rows if body is [removed]
+    df = df[df.body != '[removed]']
+
+    # remove urls
+    df['body'] = df['body'].str.replace(r'http\S+|www\S+', '', case=False, regex=True)
+
+    # remove hashtags
+    df['body'] = df['body'].str.replace(r'#\S+', '', case=False, regex=True)
+
+    # remove mentions
+    df['body'] = df['body'].str.replace(r'@\S+', '', case=False, regex=True)
+
+    # remove HTML character entities
+    df['body'] = df['body'].str.replace(r'&\S+;', '', case=False, regex=True)
+
+    # remove []() or ()[], and the text in between
+    df['body'] = df['body'].str.replace(r'\[\S+\]\(\S+\)', '', case=False, regex=True)
+    df['body'] = df['body'].str.replace(r'\(\S+\)\[\S+\]', '', case=False, regex=True)
+
+    # remove single [ or ] or ( or )
+    df['body'] = df['body'].str.replace(r'\[|\]|\(|\)', '', case=False, regex=True)
+
+    # remove leading and trailing whitespace
+    df['body'] = df['body'].str.strip()
+
+    # remove consecutive whitespace more than 3
+    df['body'] = df['body'].str.replace(r'\s{3,}', ' ', case=False, regex=True)
+
+    # drop rows if any of the columns are null
+    df = df.dropna(subset=['body', 'author'])
+
+    # drop rows if body or author is empty
+    df = df[df.body != '' ]
+    df = df[df.author != '']
+
+    # write to csv
+    if counter == 0:
+        df.to_csv(new_file, index=False, header=True, quoting=csv.QUOTE_NONNUMERIC)
+    else:
+        df.to_csv(new_file, index=False, header=False, quoting=csv.QUOTE_NONNUMERIC)
+    counter += 1
+    progress_bar.update(chunksize)
 progress_bar.close()
-print(f"Filtered data written to {output_file}")
