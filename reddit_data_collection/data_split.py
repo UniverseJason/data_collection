@@ -24,9 +24,9 @@ def split_large_csv(infile, num_files, output_prefix, chunksize=10000):
                     chunk.to_csv(new_file, index=False, header=False, quoting=csv.QUOTE_NONNUMERIC)
 
 # Example usage
-infile = "./data_archive/spotify_data_unique.csv"
-output_prefix = "./data_archive/new_spotify_comment"
-num_files = 20
+infile = "./data_archive/new_reddit_comment.csv"
+output_prefix = "./data_archive/reddit_comment"
+num_files = 10
 chunksize = 10000
 
 split_large_csv(infile, num_files, output_prefix, chunksize)

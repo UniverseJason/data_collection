@@ -65,7 +65,7 @@ def main():
     data_folder = 'data_archive'
     files = []
     for i in range(10):
-        filename = 'reddit_analysis_{}.csv'.format(i)
+        filename = 'reddit_comment_{}.csv'.format(i)
         if os.path.isfile(os.path.join(data_folder, filename)):
             files.append(filename)
 
